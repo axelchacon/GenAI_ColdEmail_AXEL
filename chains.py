@@ -7,9 +7,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 class Chain:
     def __init__(self):
-        self.llm = ChatGroq(temperature=0, groq_api_key=os.getenv("GROQ_API_KEY"), model_name="llama-3.1-70b-versatile")
+        self.llm = ChatGroq(
+            temperature=0,
+            groq_api_key=os.getenv("GROQ_API_KEY"),
+            model_name="llama-3.1-70b-versatile",
+        )
 
     def extract_jobs(self, cleaned_text):
         prompt_extract = PromptTemplate.from_template(
@@ -28,8 +33,11 @@ class Chain:
         try:
             json_parser = JsonOutputParser()
             res = json_parser.parse(res.content)
+            print("Es el Res: ")
+            print([res])
         except OutputParserException:
             raise OutputParserException("Context too big. Unable to parse jobs.")
+
         return res if isinstance(res, list) else [res]
 
     def write_mail(self, job, links):
@@ -55,6 +63,7 @@ class Chain:
         chain_email = prompt_email | self.llm
         res = chain_email.invoke({"job_description": str(job), "link_list": links})
         return res.content
+
 
 if __name__ == "__main__":
     print(os.getenv("GROQ_API_KEY"))
